@@ -1,0 +1,38 @@
+services:
+  express-api:
+    depends_on: [db]
+    build:
+      context: ./backend
+    volumes:
+      - "./backend:/build"
+      - "/build/node_modules"
+    restart: always
+    env_file: "./.env"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/mydb?schema=public
+    ports:
+      - "8000:8000"
+  react-frontend:
+    build:
+      context: ./frontend
+    volumes:
+      - "./frontend:/build"
+      - "/build/node_modules"
+    restart: always
+
+  db:
+    image: postgres:latest
+    env_file: "./.env"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  nginx:
+    depends_on:
+      - react-frontend
+      - express-api
+    restart: always
+    build:
+      context: ./nginx
+    ports: ["3050:80"]
