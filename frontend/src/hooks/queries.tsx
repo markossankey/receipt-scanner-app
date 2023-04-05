@@ -18,8 +18,6 @@ export function useReceiptsQuery() {
  *
  */
 export function useReceiptDetailsQuery(receiptId: string) {
-  const { setContent } = useContext(NotificationContext);
-
   return useQuery({
     queryKey: ["receipt", receiptId],
     queryFn: () => getReceiptDetails(receiptId),

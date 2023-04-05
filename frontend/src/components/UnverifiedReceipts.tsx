@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { getReceipts, postReceipt } from "../api/Receipts";
 import { DashboardContext } from "../context/ReceiptContext";
 import { formatDate } from "../utils/date";
-import { money } from "../utils/money";
+import { convertToUsd } from "../utils/money";
 
 export const UnverifiedReceipts = ({}) => {
   const { doOpenReceipt } = useContext(DashboardContext);
@@ -56,7 +56,7 @@ export const UnverifiedReceipts = ({}) => {
             </div>
             <div className="text-right flex flex-col">
               <span className="mb-4 font-bold">{vendorName}</span>
-              <span>{money(total)}</span>
+              <span>{convertToUsd(total)}</span>
             </div>
           </div>
         ))}

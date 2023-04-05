@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReceiptDetails } from "./components/ReceiptDetails";
+import { ReceiptDetailsForm } from "./components/ReceiptDetailsForm";
 import { UnverifiedReceipts } from "./components/UnverifiedReceipts";
 import { NotificationContextProvider } from "./context/NotificationContext";
 import { DashboardContextProvider } from "./context/ReceiptContext";
@@ -15,7 +15,7 @@ function App() {
               <a href="#">Editor</a> | <a href="#">Overview</a>
             </div>
             <div className="col-span-9 row-span-23 rounded-lg border border-malibu-800 overflow-hidden p-2 bg-white bg-opacity-5">
-              <ReceiptDetails />
+              <ReceiptDetailsForm />
             </div>
             <div className="col-span-3 row-span-23 overflow-y-scroll">
               <UnverifiedReceipts />

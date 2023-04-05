@@ -1,45 +1,46 @@
-import { FormEvent, FormEventHandler, useContext } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useContext } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 import { DashboardContext } from "../context/ReceiptContext";
+import { useUpdateReceipt } from "../hooks/mutations";
 import { useReceiptDetailsQuery } from "../hooks/queries";
-import { money } from "../utils/money";
+import { convertToUsCents, convertToUsd } from "../utils/money";
 import { LineItems } from "./LineItems";
 import { DatePicker } from "./reusable/DatePicker";
-import { Controller, useForm } from "react-hook-form";
-import { ReceiptSchema } from "../schemas";
-import { useMutation } from "@tanstack/react-query";
-import { patchReceipt } from "../api/Receipts";
-import { useUpdateReceipt } from "../hooks/mutations";
 
-export const ReceiptDetails = () => {
+export const ReceiptDetailsForm = () => {
   const { openReceiptId } = useContext(DashboardContext);
   const receiptMutation = useUpdateReceipt(openReceiptId);
-  const { isLoading, isError, data, isInitialLoading, isPaused, status } =
-    useReceiptDetailsQuery(openReceiptId);
+  const { isLoading, isError, data, status } = useReceiptDetailsQuery(openReceiptId);
 
-  const { register, handleSubmit, control } = useForm<Partial<ReceiptSchema>>({
+  const { register, handleSubmit, control } = useForm({
     defaultValues: {
       id: "",
-      total: 0,
+      total: "",
       city: "",
       date: "",
-      tax: 0,
-      discountTotal: 0,
+      tax: "",
+      discountTotal: "",
       vendorName: "",
     },
     values: {
       id: data?.id,
-      total: data?.total,
+      total: convertToUsd(data?.total),
       city: data?.city,
       date: data?.date,
-      tax: data?.tax,
-      discountTotal: data?.discountTotal,
+      tax: convertToUsd(data?.tax),
+      discountTotal: convertToUsd(data?.discountTotal),
       vendorName: data?.vendorName,
     },
+    resolver: zodResolver(formSchema),
   });
+
   if (!openReceiptId) return <div>Click a receipt to get started</div>;
   if (isLoading) return <div>{status}</div>;
   if (isError) return <div>Error...</div>;
-  const onSubmit = (data: Partial<ReceiptSchema>) => {
+
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
     receiptMutation.mutate(data);
   };
 
@@ -49,58 +50,54 @@ export const ReceiptDetails = () => {
 
   return (
     <div className="grid grid-rows-24 h-full gap-4 p-4">
+      {/* @ts-expect-error */}
       <form className="row-span-6 grid grid-cols-24 gap-4" onSubmit={handleSubmit(onSubmit)}>
-        <label className="flex flex-col font-semibold col-span-10 ">
-          ID:
-          <input
-            {...register("id")}
-            className="border rounded-sm bg-opacity-50 px-1 border-malibu-700 bg-malibu-800 font-normal text-gray-400 focus:outline-malibu-500 focus:outline-none mt-1"
-            disabled
-          />
+        <label className="flex-col font-semibold col-span-10 hidden">
+          <input {...register("id")} />
         </label>
-        <label className="flex flex-col font-semibold col-span-7">
+        <label className="flex flex-col font-semibold col-span-8">
           Vendor:
           <input
             className="border rounded-sm bg-opacity-50 px-1 border-malibu-700 bg-malibu-800 font-normal focus:outline-malibu-500 focus:outline-none mt-1"
             {...register("vendorName")}
           />
         </label>
+        <label className="flex flex-col font-semibold col-span-8">
+          City:
+          <input
+            className="border rounded-sm bg-opacity-50 px-1 border-malibu-700 bg-malibu-800 font-normal focus:outline-malibu-500 focus:outline-none mt-1"
+            {...register("city")}
+          />
+        </label>
         <Controller
           control={control}
           name="date"
           render={({ field: { ref: _ref, ...field } }) => (
-            <label className="flex flex-col font-semibold col-span-7">
+            <label className="flex flex-col font-semibold col-span-8">
               Date:
               <DatePicker {...field} />
             </label>
           )}
         />
-        <label className="flex flex-col font-semibold col-span-6">
+        <label className="flex flex-col font-semibold col-span-8">
           Amount:
           <input
             className="border rounded-sm bg-opacity-50 px-1 border-malibu-700 bg-malibu-800 font-normal focus:outline-malibu-500 focus:outline-none mt-1"
             {...register("total")}
           />
         </label>
-        <label className="flex flex-col font-semibold col-span-6">
+        <label className="flex flex-col font-semibold col-span-8">
           Tax:
           <input
             className="border rounded-sm bg-opacity-50 px-1 border-malibu-700 bg-malibu-800 font-normal focus:outline-malibu-500 focus:outline-none mt-1"
             {...register("tax")}
           />
         </label>
-        <label className="flex flex-col font-semibold col-span-6">
+        <label className="flex flex-col font-semibold col-span-8">
           Discount:
           <input
             className="border rounded-sm bg-opacity-50 px-1 border-malibu-700 bg-malibu-800 font-normal focus:outline-malibu-500 focus:outline-none mt-1"
             {...register("discountTotal")}
-          />
-        </label>
-        <label className="flex flex-col font-semibold col-span-6">
-          City:
-          <input
-            className="border rounded-sm bg-opacity-50 px-1 border-malibu-700 bg-malibu-800 font-normal focus:outline-malibu-500 focus:outline-none mt-1"
-            {...register("city")}
           />
         </label>
         <div className="flex gap-4 col-span-24 justify-end">
@@ -123,3 +120,31 @@ export const ReceiptDetails = () => {
     </div>
   );
 };
+
+const formSchema = z.object({
+  id: z.string(),
+  total: z
+    .preprocess(
+      (input) => (typeof input === "string" && input !== "" ? convertToUsCents(input) : 0),
+      z.number()
+    )
+    .nullable()
+    .optional(),
+  city: z.string().nullable().optional(),
+  date: z.string().nullable().optional(),
+  tax: z
+    .preprocess(
+      (input) => (typeof input === "string" && input !== "" ? convertToUsCents(input) : 0),
+      z.number()
+    )
+    .nullable()
+    .optional(),
+  discountTotal: z
+    .preprocess(
+      (input) => (typeof input === "string" && input !== "" ? convertToUsCents(input) : 0),
+      z.number()
+    )
+    .nullable()
+    .optional(),
+  vendorName: z.string().nullable().optional(),
+});
