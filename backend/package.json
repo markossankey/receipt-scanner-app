@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node build/server.js",
-    "predev": "tsc",
+    "predev": "yarn prisma db push && tsc",
     "dev": "concurrently \"tsc --watch\" \"node --watch build/server.js\" ",
     "generateSchemas": "yarn prisma generate && cp -a ./prisma/zod/. ../frontend/src/schemas/generated"
   },

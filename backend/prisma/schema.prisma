@@ -27,7 +27,7 @@ generator zod {
   // prismaJsonNullability = false // allows null assignment to optional JSON fields
 }
 
-datasource db {
+datasource mydb {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }

@@ -1,3 +1,3 @@
-export * from "./user.js";
-export * from "./lineitem.js";
-export * from "./receipt.js";
+export * from "./user"
+export * from "./lineitem"
+export * from "./receipt"

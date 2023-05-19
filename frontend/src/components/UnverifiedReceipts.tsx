@@ -7,7 +7,13 @@ import { convertToUsd } from "../utils/money";
 
 export const UnverifiedReceipts = ({}) => {
   const { doOpenReceipt } = useContext(DashboardContext);
-  const { isLoading, isError, isFetching, data } = useQuery({
+  const {
+    isLoading,
+    isError,
+    isFetching,
+    data,
+    refetch: refetchReceipts,
+  } = useQuery({
     queryKey: ["receipt"],
     queryFn: getReceipts,
   });
@@ -15,6 +21,9 @@ export const UnverifiedReceipts = ({}) => {
   const { mutate } = useMutation({
     mutationKey: ["receipt", "upload"],
     mutationFn: (file: File) => postReceipt(file),
+    onSuccess: () => {
+      refetchReceipts();
+    },
   });
 
   if (isLoading) return <div>Is Loadiing</div>;

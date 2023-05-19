@@ -1,5 +1,5 @@
-import * as z from "zod";
-import { CompleteLineItem, RelatedLineItemModel } from "./index.js";
+import * as z from "zod"
+import { CompleteLineItem, RelatedLineItemModel } from "./index"
 
 export const ReceiptModel = z.object({
   id: z.string(),
@@ -14,10 +14,10 @@ export const ReceiptModel = z.object({
   state: z.string().nullish(),
   vendorReceiptId: z.string().nullish(),
   isVerified: z.boolean(),
-});
+})
 
 export interface CompleteReceipt extends z.infer<typeof ReceiptModel> {
-  lineItems: CompleteLineItem[];
+  lineItems: CompleteLineItem[]
 }
 
 /**
@@ -25,8 +25,6 @@ export interface CompleteReceipt extends z.infer<typeof ReceiptModel> {
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const RelatedReceiptModel: z.ZodSchema<CompleteReceipt> = z.lazy(() =>
-  ReceiptModel.extend({
-    lineItems: RelatedLineItemModel.array(),
-  })
-);
+export const RelatedReceiptModel: z.ZodSchema<CompleteReceipt> = z.lazy(() => ReceiptModel.extend({
+  lineItems: RelatedLineItemModel.array(),
+}))
